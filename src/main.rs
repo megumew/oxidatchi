@@ -1,7 +1,9 @@
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
     execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen, SetTitle},
+    terminal::{
+        disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen, SetTitle,
+    },
 };
 use std::{
     error::Error,
@@ -11,18 +13,16 @@ use std::{
 use tui::{
     backend::{Backend, CrosstermBackend},
     layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Style, Modifier},
+    style::{Color, Modifier, Style},
     text::Span,
     widgets::{
         canvas::{Canvas, Map, MapResolution, Rectangle},
-        Block, Borders, Paragraph, Gauge,
+        Block, Borders, Gauge, Paragraph,
     },
     Frame, Terminal,
 };
 
 struct App {
-    x: f64,
-    y: f64,
     ball: Rectangle,
     playground: Rect,
     vx: f64,
@@ -34,8 +34,6 @@ struct App {
 impl App {
     fn new() -> App {
         App {
-            x: 0.0,
-            y: 0.0,
             ball: Rectangle {
                 x: 10.0,
                 y: 30.0,
@@ -81,7 +79,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     // setup terminal
     enable_raw_mode()?;
     let mut stdout = io::stdout();
-    execute!(stdout, EnterAlternateScreen, EnableMouseCapture, SetTitle("oxidatchi - your virtual pet"))?;
+    execute!(
+        stdout,
+        EnterAlternateScreen,
+        EnableMouseCapture,
+        SetTitle("oxidatchi - your virtual pet")
+    )?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
@@ -124,17 +127,20 @@ fn run_app<B: Backend>(
                     KeyCode::Char('q') => {
                         return Ok(());
                     }
+                    KeyCode::Esc => {
+                        return Ok(());
+                    }
                     KeyCode::Down => {
-                        app.y += 1.0;
+                        app.vy = -1.0;
                     }
                     KeyCode::Up => {
-                        app.y -= 1.0;
+                        app.vy = 1.0;
                     }
                     KeyCode::Right => {
-                        app.x += 1.0;
+                        app.vx = 1.0;
                     }
                     KeyCode::Left => {
-                        app.x -= 1.0;
+                        app.vx = -1.0;
                     }
                     _ => {}
                 }
@@ -154,7 +160,6 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
         .constraints([Constraint::Percentage(95), Constraint::Percentage(5)].as_ref())
         .split(f.size());
 
-
     let game_area = Canvas::default()
         .block(Block::default().borders(Borders::ALL).title("oxidatchi"))
         .paint(|ctx| {
@@ -164,8 +169,13 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
         .y_bounds([10.0, 110.0]);
     f.render_widget(game_area, chunks[0]);
     let bottom_bar = Gauge::default()
-    .block(Block::default().borders(Borders::ALL).title("Progress"))
-    .gauge_style(Style::default().fg(Color::White).bg(Color::Black).add_modifier(Modifier::ITALIC))
-    .percent(50);
+        .block(Block::default().borders(Borders::ALL).title("Progress"))
+        .gauge_style(
+            Style::default()
+                .fg(Color::White)
+                .bg(Color::Black)
+                .add_modifier(Modifier::ITALIC),
+        )
+        .percent(50);
     f.render_widget(bottom_bar, chunks[1]);
 }
