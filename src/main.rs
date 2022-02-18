@@ -130,6 +130,7 @@ fn run_app<B: Backend>(
                     KeyCode::Esc => {
                         return Ok(());
                     }
+                    //Events below are placeholders
                     KeyCode::Down => {
                         app.vy = -1.0;
                     }
