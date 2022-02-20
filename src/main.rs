@@ -203,22 +203,22 @@ fn ui<'a, B: Backend>(f: &mut Frame<B>, app: &'a App) {
         .paint(|ctx| {
             ctx.print(
                 app.pet.x,
-                app.pet.y + (y_bounds / size),
+                app.pet.y + (y_bounds / size) * 3.0,
                 Span::styled(" .::::::::..", Style::default().fg(Color::LightRed)),
             );
             ctx.print(
                 app.pet.x,
-                app.pet.y - (y_bounds / size),
+                app.pet.y + (y_bounds / size) * 2.0,
                 Span::styled(" :::::::::::::", Style::default().fg(Color::LightRed)),
             );
             ctx.print(
                 app.pet.x,
-                app.pet.y - (y_bounds / size) * 2.0,
+                app.pet.y + (y_bounds / size),
                 Span::styled(":::::::::::' .\\", Style::default().fg(Color::LightRed)),
             );
             ctx.print(
                 app.pet.x,
-                app.pet.y - (y_bounds / size) * 3.0,
+                app.pet.y,
                 Span::styled("`::::::::::_,__o", Style::default().fg(Color::LightRed)),
             );
             ctx.print(10.0, 10.0, Span::raw(size.to_string()));
