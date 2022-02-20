@@ -14,7 +14,7 @@ use tui::{
     backend::{Backend, CrosstermBackend},
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
-    text::Span,
+    text::{Span, Text},
     widgets::{
         canvas::{Canvas, Map, MapResolution, Rectangle},
         Block, Borders, Gauge, Paragraph,
@@ -23,7 +23,7 @@ use tui::{
 };
 
 struct App {
-    ball: Rectangle,
+    pet: Pet,
     playground: Rect,
     vx: f64,
     vy: f64,
@@ -31,15 +31,49 @@ struct App {
     dir_y: bool,
 }
 
+struct Pet {
+    x: f64,
+    y: f64,
+    color: tui::style::Color,
+    body: [String; 2],
+    name: String,
+}
+
+impl Pet {
+    fn new(name: String, body: [String; 2]) -> Pet {
+        Pet {
+            x: 50.0,
+            y: 50.0,
+            color: Color::Yellow,
+            body,
+            name,
+        }
+    }
+}
+
 impl App {
     fn new() -> App {
         App {
-            ball: Rectangle {
-                x: 10.0,
-                y: 30.0,
-                width: 5.0,
-                height: 10.0,
-                color: Color::Magenta,
+            pet: Pet {
+                x: 100.0,
+                y: 500.0,
+                color: Color::Yellow,
+                body: [
+                    String::from(
+                        " .::::::::..     
+                :::::::::::::   
+               :::::::::::' .\\    
+               `::::::::::_,__o   
+               ",
+                    ),
+                    String::from(
+                        " .::::::::..     
+               :::::::::::::   
+              :::::::::::' ˗\\   
+              `::::::::::_,__o ",
+                    ),
+                ],
+                name: String::from("Kip"),
             },
             playground: Rect::new(10, 10, 100, 100),
             vx: 1.0,
@@ -50,28 +84,30 @@ impl App {
     }
 
     fn on_tick(&mut self) {
-        if self.ball.x < self.playground.left() as f64
-            || self.ball.x + self.ball.width > self.playground.right() as f64
-        {
-            self.dir_x = !self.dir_x;
-        }
-        if self.ball.y < self.playground.top() as f64
-            || self.ball.y + self.ball.height > self.playground.bottom() as f64
-        {
-            self.dir_y = !self.dir_y;
-        }
+        self.pet.x += 1.0;
+        //self.pet.y += 1.0;
+        //     if self.pet.x < self.playground.left() as f64
+        //         || self.pet.x + self.pet.width > self.playground.right() as f64
+        //     {
+        //         self.dir_x = !self.dir_x;
+        //     }
+        //     if self.pet.y < self.playground.top() as f64
+        //         || self.pet.y + self.pet.height > self.playground.bottom() as f64
+        //     {
+        //         self.dir_y = !self.dir_y;
+        //     }
 
-        if self.dir_x {
-            self.ball.x += self.vx;
-        } else {
-            self.ball.x -= self.vx;
-        }
+        //     if self.dir_x {
+        //         self.pet.x += self.vx;
+        //     } else {
+        //         self.pet.x -= self.vx;
+        //     }
 
-        if self.dir_y {
-            self.ball.y += self.vy;
-        } else {
-            self.ball.y -= self.vy
-        }
+        //     if self.dir_y {
+        //         self.pet.y += self.vy;
+        //     } else {
+        //         self.pet.y -= self.vy
+        //     }
     }
 }
 
@@ -89,7 +125,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut terminal = Terminal::new(backend)?;
 
     // create app and run it
-    let tick_rate = Duration::from_millis(25);
+    let tick_rate = Duration::from_millis(100);
     let app = App::new();
     let res = run_app(&mut terminal, app, tick_rate);
 
@@ -132,16 +168,16 @@ fn run_app<B: Backend>(
                     }
                     //Events below are placeholders
                     KeyCode::Down => {
-                        app.vy = -1.0;
+                        //app.vy = -1.0;
                     }
                     KeyCode::Up => {
-                        app.vy = 1.0;
+                        //app.vy = 1.0;
                     }
                     KeyCode::Right => {
-                        app.vx = 1.0;
+                        //app.vx = 1.0;
                     }
                     KeyCode::Left => {
-                        app.vx = -1.0;
+                        //app.vx = -1.0;
                     }
                     _ => {}
                 }
@@ -155,28 +191,40 @@ fn run_app<B: Backend>(
     }
 }
 
-fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
-    let chunks = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([Constraint::Percentage(95), Constraint::Percentage(5)].as_ref())
-        .split(f.size());
+fn ui<'a, B: Backend>(f: &mut Frame<B>, app: &'a App) {
+
+    let size = f.size().height as f64;
+
+    let x_bounds = 1000.0;
+    let y_bounds = 1000.0;
 
     let game_area = Canvas::default()
         .block(Block::default().borders(Borders::ALL).title("oxidatchi"))
         .paint(|ctx| {
-            ctx.draw(&app.ball);
+            ctx.print(
+                app.pet.x,
+                app.pet.y + (y_bounds / size),
+                Span::styled(" .::::::::..", Style::default().fg(Color::LightRed)),
+            );
+            ctx.print(
+                app.pet.x,
+                app.pet.y - (y_bounds / size),
+                Span::styled(" :::::::::::::", Style::default().fg(Color::LightRed)),
+            );
+            ctx.print(
+                app.pet.x,
+                app.pet.y - (y_bounds / size) * 2.0,
+                Span::styled(":::::::::::' .\\", Style::default().fg(Color::LightRed)),
+            );
+            ctx.print(
+                app.pet.x,
+                app.pet.y - (y_bounds / size) * 3.0,
+                Span::styled("`::::::::::_,__o", Style::default().fg(Color::LightRed)),
+            );
+            ctx.print(10.0, 10.0, Span::raw(size.to_string()));
         })
-        .x_bounds([10.0, 110.0])
-        .y_bounds([10.0, 110.0]);
-    f.render_widget(game_area, chunks[0]);
-    let bottom_bar = Gauge::default()
-        .block(Block::default().borders(Borders::ALL).title("Progress"))
-        .gauge_style(
-            Style::default()
-                .fg(Color::White)
-                .bg(Color::Black)
-                .add_modifier(Modifier::ITALIC),
-        )
-        .percent(50);
-    f.render_widget(bottom_bar, chunks[1]);
+        .x_bounds([0.0, x_bounds])
+        .y_bounds([0.0, y_bounds]);
+    f.render_widget(game_area, f.size());
+
 }
